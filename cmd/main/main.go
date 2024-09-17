@@ -8,7 +8,6 @@ import (
 	"log/slog"
 	"os"
 	"shop-product-service/internal/config"
-	"shop-product-service/internal/product/modal"
 	"shop-product-service/internal/product/service"
 	"shop-product-service/internal/product/storage/postgresql"
 )
@@ -34,13 +33,6 @@ func main() {
 
 	productService := service.New(logger, productStorage)
 
-	productService.AddProduct(ctx, modal.CreateProductDTO{
-		Name:        "Honor 9",
-		Price:       20333,
-		Count:       10,
-		Image:       nil,
-		Description: "Notebook",
-		CategoryId:  1,
-	})
+	productService.GetProductByCategory(ctx, 1)
 
 }

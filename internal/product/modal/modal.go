@@ -12,12 +12,6 @@ type Product struct {
 	CategoryId  int64
 }
 
-type Category struct {
-	Id             int64
-	Name           string
-	parentCategory int64
-}
-
 type Reviews struct {
 	Uuid      string
 	ProductId string

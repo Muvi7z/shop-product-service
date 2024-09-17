@@ -25,13 +25,13 @@ func NewStorage(client *pgxpool.Pool, logger *slog.Logger) storage2.Storage {
 }
 
 func (s storage) FindOne(ctx context.Context, id string) (modal.Product, error) {
-	q := `SELECT id, name, price, count, images from product."product" WHERE id = ($1)`
+	q := `SELECT id, name, price, count, images, description, category_id from product WHERE id = ($1)`
 
 	var p modal.Product
 
 	s.logger.Info(fmt.Sprintf("SQL Query: %s", q))
 
-	if err := s.db.QueryRow(ctx, q, id).Scan(); err != nil {
+	if err := s.db.QueryRow(ctx, q, id).Scan(&p.Uuid, &p.Name, &p.Price, &p.Count, &p.Image, &p.Description, &p.CategoryId); err != nil {
 		var pgErr *pgconn.PgError
 
 		if errors.As(err, &pgErr) {
@@ -46,7 +46,7 @@ func (s storage) FindOne(ctx context.Context, id string) (modal.Product, error) 
 }
 
 func (s storage) FindByCategory(ctx context.Context, categoryId int64) ([]modal.Product, error) {
-	q := `SELECT id, name, price, count, images,description,categoryId from product."product" WHERE categoryId = ($1)`
+	q := `SELECT id, name, price, count, images, description,category_id from product WHERE category_id = ($1)`
 
 	s.logger.Info(fmt.Sprintf("SQL Query: %s", q))
 
@@ -82,12 +82,12 @@ func (s storage) FindByCategory(ctx context.Context, categoryId int64) ([]modal.
 }
 
 func (s storage) Create(ctx context.Context, product modal.Product) (string, error) {
-	q := `INSERT INTO product."product" (id, name, price, count, images, description, categoryId)
+	q := `INSERT INTO public."product" (id, name, price, count, images, description, category_id)
 			VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`
 
 	s.logger.Info(fmt.Sprintf("SQL Query: %s", q))
 
-	if err := s.db.QueryRow(ctx, q, product.Uuid, product.Name, product.Count, product.Image, product.Description, product.CategoryId).Scan(); err != nil {
+	if err := s.db.QueryRow(ctx, q, product.Uuid, product.Name, product.Price, product.Count, product.Image, product.Description, product.CategoryId).Scan(&product.Uuid); err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
 			pgErr = err.(*pgconn.PgError)
