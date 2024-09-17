@@ -1,7 +1,40 @@
 package service
 
-import "shop-product-service/internal/product/modal"
+import (
+	"context"
+	"github.com/google/uuid"
+	"log/slog"
+	"shop-product-service/internal/product/modal"
+	storage2 "shop-product-service/internal/product/storage"
+)
 
-type ProductStorage interface {
-	FindById(id int) modal.Product
+type Service struct {
+	logger  *slog.Logger
+	storage storage2.Storage
+}
+
+func New(logger *slog.Logger, storage storage2.Storage) *Service {
+	return &Service{logger: logger, storage: storage}
+}
+
+func (s *Service) AddProduct(ctx context.Context, dto modal.CreateProductDTO) (string, error) {
+	s.logger.Info("attempting to add product")
+	pUuid := uuid.New()
+	p := modal.Product{
+		Uuid:        pUuid.String(),
+		Name:        dto.Name,
+		Price:       dto.Price,
+		Count:       dto.Count,
+		Image:       dto.Image,
+		Description: dto.Description,
+		CategoryId:  dto.CategoryId,
+	}
+
+	_, err := s.storage.Create(ctx, p)
+	if err != nil {
+		s.logger.Error("failed to create u: %v", err)
+		return "", err
+	}
+
+	return pUuid.String(), nil
 }

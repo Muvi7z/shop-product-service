@@ -1,0 +1,6 @@
+storage:
+  host: localhost
+  port: 5432
+  database: product
+  username: postgres
+  password: root
