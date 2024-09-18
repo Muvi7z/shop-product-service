@@ -7,6 +7,9 @@ import (
 	"log"
 	"log/slog"
 	"os"
+	"shop-product-service/internal/category/modal"
+	service2 "shop-product-service/internal/category/service"
+	postgresql2 "shop-product-service/internal/category/storage/postgresql"
 	"shop-product-service/internal/config"
 	"shop-product-service/internal/product/service"
 	"shop-product-service/internal/product/storage/postgresql"
@@ -35,4 +38,12 @@ func main() {
 
 	productService.GetProductByCategory(ctx, 1)
 
+	categoryStorage := postgresql2.NewStorage(db, logger)
+
+	categoryService := service2.New(logger, categoryStorage)
+
+	categoryService.AddCategory(ctx, modal.CreateCategoryDto{
+		Name:           "Компьютеры и ПО",
+		ParentCategory: 2,
+	})
 }

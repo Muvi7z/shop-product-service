@@ -18,4 +18,5 @@ type Reviews struct {
 	Rating    float64
 	CreatedAt time.Time
 	Comment   string
+	Name      string
 }

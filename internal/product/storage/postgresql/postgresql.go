@@ -57,7 +57,7 @@ func (s storage) FindByCategory(ctx context.Context, categoryId int64) ([]modal.
 		var pgErr *pgconn.PgError
 
 		if errors.As(err, &pgErr) {
-			pgErr = err.(*pgconn.PgError)
+			errors.As(err, &pgErr)
 			newErr := fmt.Sprintf("SQL Query Error: %s, Code: %s", pgErr.Message, pgErr.Code)
 			s.logger.Error(newErr)
 		}

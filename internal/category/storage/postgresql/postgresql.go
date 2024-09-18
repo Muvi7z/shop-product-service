@@ -80,6 +80,42 @@ func (s storage) FindByCategory(ctx context.Context, categoryId int64) ([]modal.
 	return categories, nil
 }
 
+func (s storage) FindRootCategories(ctx context.Context) ([]modal.Category, error) {
+	q := `SELECT id, name, parent_category from categories WHERE parent_category IS NULL`
+
+	s.logger.Info(fmt.Sprintf("SQL Query: %s", q))
+
+	categories := make([]modal.Category, 0)
+
+	rows, err := s.db.Query(ctx, q)
+	if err != nil {
+		var pgErr *pgconn.PgError
+
+		if errors.As(err, &pgErr) {
+			pgErr = err.(*pgconn.PgError)
+			newErr := fmt.Sprintf("SQL Query Error: %s, Code: %s", pgErr.Message, pgErr.Code)
+			s.logger.Error(newErr)
+		}
+		return nil, err
+	}
+
+	for rows.Next() {
+		var c modal.Category
+
+		err := rows.Scan(&c.Id, &c.Name, &c.ParentCategory)
+		if err != nil {
+			return nil, err
+		}
+
+		categories = append(categories, c)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return categories, nil
+}
+
 func (s storage) Create(ctx context.Context, c modal.Category) (int64, error) {
 	q := `INSERT INTO public."categories" ( name, parent_category)
 			VALUES ($1, $2) RETURNING id`
@@ -89,7 +125,7 @@ func (s storage) Create(ctx context.Context, c modal.Category) (int64, error) {
 	if err := s.db.QueryRow(ctx, q, c.Name, c.ParentCategory).Scan(&c.Id); err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
-			pgErr = err.(*pgconn.PgError)
+			//pgErr = err.(*pgconn.PgError)
 			if pgErr.Code == "23505" {
 				return 0, errors.New("user already exists")
 			}
